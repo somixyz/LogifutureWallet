@@ -1,0 +1,60 @@
+server:
+  port: 9090
+
+  spring:
+    application:
+      name: API-GATEWAY
+    config:
+      import: configserver:http://localhost:9296
+    cloud:
+      mvc:
+        gateway:
+          routes:
+            - id: USER-SERVICE
+              uri: lb://USER-SERVICE
+              predicates:
+                - Path=/v1/users/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: USER-SERVICE
+                    fallbackuri: forward:/userServiceFallBack
+            #              - name: RequestRateLimiter
+            #                args:
+            #                  redis-rate-limiter.replenishRate: 1
+            #                  redis-rate-limiter.burstCapacity: 1
+            - id: PAYMENT-SERVICE
+              uri: lb://PAYMENT-SERVICE
+              predicates:
+                - Path=/v1/payments/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: PAYMENT-SERVICE
+                    fallbackuri: forward:/paymentServiceFallBack
+            #              - name: RequestRateLimiter
+            #                args:
+            #                  redis-rate-limiter.replenishRate: 1
+            #                  redis-rate-limiter.burstCapacity: 1
+            - id: WALLET-SERVICE
+              uri: lb://WALLET-SERVICE
+              predicates:
+                - Path=/v1/wallets/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: WALLET-SERVICE
+                    fallbackuri: forward:/walletServiceFallBack
+  #              - name: RequestRateLimiter
+  #                args:
+  #                  redis-rate-limiter.replenishRate: 1
+  #                  redis-rate-limiter.burstCapacity: 1
+
+
+
+  #zipkin:
+  #  baseUrl: http://localhost:9411
+  #management:
+  #  tracing:
+  #    sampling:
+  #      probability: 1.0
